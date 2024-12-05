@@ -1,5 +1,6 @@
 package Hieu.demo.configuration;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.ParameterResolutionDelegate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -26,7 +27,7 @@ import javax.crypto.spec.SecretKeySpec;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-    private String[] PUBLIC_ENDPOINT = {"/users", "auth/token", "auth/introspect","/auth/logout"};
+    private String[] PUBLIC_ENDPOINT = {"/users", "auth/token", "auth/introspect","/auth/logout","/auth/refresh"};
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
@@ -38,7 +39,7 @@ public class SecurityConfig {
         httpSecurity.oauth2ResourceServer( // auth cho jwt do chung ta gen, chung ta dang la resource server
                 // neu ta cau hinh resource server thu 3 thi dung  jwkSetUri
                 oauth2 -> oauth2.jwt(jwtConfigurer ->
-                                jwtConfigurer.decoder(jwtDecoder())
+                                jwtConfigurer.decoder(customJwtDecoder)
                                         .jwtAuthenticationConverter(jwtAuthenticationConverter()))
                         //diem ma authentication false thi dieu huong di dau hoac trong th nay tra ve error mess, tako dieu huong di dau ca
                         .authenticationEntryPoint(new JwtAuthenticationEntryPoint())
@@ -48,29 +49,21 @@ public class SecurityConfig {
         return httpSecurity.build();
     }
 
-    @Bean
-    public CorsFilter corsFilter() {
-        CorsConfiguration corsConfiguration = new CorsConfiguration();
-        corsConfiguration.addAllowedOrigin("http://localhost:5173");
-        corsConfiguration.addAllowedMethod("*");
-        corsConfiguration.addAllowedHeader("*");
-        UrlBasedCorsConfigurationSource urlBasedCorsConfigurationSource = new UrlBasedCorsConfigurationSource();
-        urlBasedCorsConfigurationSource.registerCorsConfiguration("/**", corsConfiguration);
-        return new CorsFilter(urlBasedCorsConfigurationSource);
-    }
+    @Autowired
+    private CustomJwtDecoder customJwtDecoder;
 
-    @Value("${jwt.signerkey}")
-    private String signerKey;
+
 
     // implement
-    @Bean
-    public JwtDecoder jwtDecoder() {
-        //2.
-        SecretKeySpec spec = new SecretKeySpec(signerKey.getBytes(), "HS256");
-        //1. ta dung secrete key
-        NimbusJwtDecoder nimbusJwtDecoder = NimbusJwtDecoder.withSecretKey(spec).macAlgorithm(MacAlgorithm.HS256).build();
-        return nimbusJwtDecoder;
-    }
+    //tác dụng jwtDecoder: verify token
+//    @Bean
+//    public JwtDecoder jwtDecoder() {
+//        //2.
+//        SecretKeySpec spec = new SecretKeySpec(signerKey.getBytes(), "HS256");
+//        //1. ta dung secrete key
+//        NimbusJwtDecoder nimbusJwtDecoder = NimbusJwtDecoder.withSecretKey(spec).macAlgorithm(MacAlgorithm.HS256).build();
+//        return nimbusJwtDecoder;
+//    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {

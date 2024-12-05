@@ -49,8 +49,8 @@ public class UserService {
         return userRepository.save(user);
     }
 
-   // @PreAuthorize("hasRole('ADMIN')")
-    @PreAuthorize("hasAuthority('CREATE')")
+    @PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasAuthority('CREATE')")
     public List<User> getAll() {
         return userRepository.findAll();
     }

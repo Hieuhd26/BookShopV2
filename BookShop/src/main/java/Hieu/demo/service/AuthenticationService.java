@@ -3,6 +3,7 @@ package Hieu.demo.service;
 import Hieu.demo.dto.request.AuthenticationRequest;
 import Hieu.demo.dto.request.IntrospectRequest;
 import Hieu.demo.dto.request.LogoutRequest;
+import Hieu.demo.dto.request.RefreshRequest;
 import Hieu.demo.dto.response.AuthenticationResponse;
 import Hieu.demo.dto.response.IntrospectResponse;
 import Hieu.demo.entity.InvalidatedToken;
@@ -163,6 +164,26 @@ public class AuthenticationService {
             });
         }
         return stringJoiner.toString();
+    }
+
+
+    public AuthenticationResponse refreshToke(RefreshRequest request) throws ParseException, JOSEException {
+        var signJWT = verifyToken(request.getToken());
+
+        var jid = signJWT.getJWTClaimsSet().getJWTID();
+        var expiryTime = signJWT.getJWTClaimsSet().getExpirationTime();
+
+        InvalidatedToken invalidatedToken = InvalidatedToken.builder()
+                .id(jid)
+                .expiryTime(expiryTime)
+                .build();
+        invalidatedTokenRepository.save(invalidatedToken);
+        var username = signJWT.getJWTClaimsSet().getSubject();
+        var user = userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
+        var token = generateToken(user);
+        return AuthenticationResponse.builder()
+                .token(token).authenticated(true).build();
+
     }
 
 

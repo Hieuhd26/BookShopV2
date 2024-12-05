@@ -3,6 +3,7 @@ package Hieu.demo.controller;
 import Hieu.demo.dto.request.AuthenticationRequest;
 import Hieu.demo.dto.request.IntrospectRequest;
 import Hieu.demo.dto.request.LogoutRequest;
+import Hieu.demo.dto.request.RefreshRequest;
 import Hieu.demo.dto.response.ApiResponse;
 import Hieu.demo.dto.response.AuthenticationResponse;
 import Hieu.demo.dto.response.IntrospectResponse;
@@ -45,6 +46,14 @@ public class AuthenticationController {
     ApiResponse<Void> logout(@RequestBody LogoutRequest request) throws ParseException, JOSEException {
           authenticationService.logout(request);
         return ApiResponse.<Void>builder()
+                .build();
+    }
+
+    @PostMapping("/refresh")
+    ApiResponse<AuthenticationResponse> refresh(@RequestBody RefreshRequest request) throws ParseException, JOSEException {
+        var result = authenticationService.refreshToke(request);
+        return ApiResponse.<AuthenticationResponse>builder()
+                .result(result)
                 .build();
     }
 
